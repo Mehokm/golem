@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"errors"
 )
 
 // AES Cipher Modes
@@ -125,16 +126,16 @@ func (c *blockModeEncryption) Encrypt(data []byte) []byte {
 	return ciphertext
 }
 
-func (c *blockModeEncryption) Decrypt(data []byte) []byte {
+func (c *blockModeEncryption) Decrypt(data []byte) ([]byte, error) {
 	if len(data) < aes.BlockSize {
-		panic("ciphertext is too short")
+		return nil, errors.New("ciphertext is too short")
 	}
 
 	iv := data[:aes.BlockSize]
 	ciphertext := data[aes.BlockSize:]
 
 	if len(ciphertext)%aes.BlockSize != 0 {
-		panic("ciphertext is not a multiple of the block size")
+		return nil, errors.New("ciphertext is not a multiple of the block size")
 	}
 
 	mode := c.decrypterFunc(c.block, iv)
@@ -143,7 +144,7 @@ func (c *blockModeEncryption) Decrypt(data []byte) []byte {
 
 	mode.CryptBlocks(plaintext, data[aes.BlockSize:])
 
-	return bytes.Trim(plaintext, "\x00")
+	return bytes.Trim(plaintext, "\x00"), nil
 }
 
 func (c *streamEncryption) Encrypt(data []byte) []byte {
@@ -160,9 +161,9 @@ func (c *streamEncryption) Encrypt(data []byte) []byte {
 	return ciphertext
 }
 
-func (c *streamEncryption) Decrypt(data []byte) []byte {
+func (c *streamEncryption) Decrypt(data []byte) ([]byte, error) {
 	if len(data) < aes.BlockSize {
-		panic("ciphertext is too short")
+		return nil, errors.New("ciphertext is too short")
 	}
 
 	iv := data[:aes.BlockSize]
@@ -174,5 +175,5 @@ func (c *streamEncryption) Decrypt(data []byte) []byte {
 
 	stream.XORKeyStream(plaintext, ciphertext)
 
-	return plaintext
+	return plaintext, nil
 }

@@ -28,11 +28,11 @@ func TestEntityProtectUnprotect(t *testing.T) {
 	ep.Unprotect(&ts)
 
 	if "hello" != ts.A.String() {
-		t.Errorf("Excepted %v to equal %v", ts.A.String(), "hello")
+		t.Errorf("Excepted '%v' to equal '%v'", ts.A.String(), "hello")
 	}
 
 	if "world" != ts.B.String() {
-		t.Errorf("Excepted %v to equal %v", ts.B.String(), "world")
+		t.Errorf("Excepted '%v' to equal '%v'", ts.B.String(), "world")
 	}
 }
 
@@ -52,7 +52,7 @@ func TestEntityReturnsErrorWhenNotAPointer(t *testing.T) {
 	err := ep.Protect(ts)
 
 	if "Not a pointer value" != err.Error() {
-		t.Errorf("Excepted %v to equal %v", err.Error(), "Not a pointer value")
+		t.Errorf("Excepted '%v' to equal '%v'", err.Error(), "Not a pointer value")
 	}
 }
 
@@ -68,6 +68,6 @@ func TestEntityReturnsErrorWhenNotAStruct(t *testing.T) {
 	err := ep.Protect(&ts)
 
 	if "interface{} must be of type Struct" != err.Error() {
-		t.Errorf("Excepted %v to equal %v", err.Error(), "interface{} must be of type Struct")
+		t.Errorf("Excepted '%v' to equal '%v'", err.Error(), "interface{} must be of type Struct")
 	}
 }

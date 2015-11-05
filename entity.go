@@ -26,14 +26,6 @@ func (ep entityProtector) Unprotect(i interface{}) error {
 }
 
 func (ep entityProtector) process(i interface{}, method string) error {
-	var workFunc func([]byte) []byte
-	switch method {
-	case "encrypt":
-		workFunc = ep.cipher.Encrypt
-	case "decrypt":
-		workFunc = ep.cipher.Decrypt
-	}
-
 	iAddr := reflect.ValueOf(i)
 
 	if iAddr.Kind() != reflect.Ptr {
@@ -50,7 +42,18 @@ func (ep entityProtector) process(i interface{}, method string) error {
 	for i := 0; i < iAddr.NumField(); i++ {
 		field := iAddr.Field(i)
 		if _, ok := field.Interface().(ByteArray); ok {
-			field.SetBytes(workFunc(field.Bytes()))
+			switch method {
+			case "encrypt":
+				field.SetBytes(ep.cipher.Encrypt(field.Bytes()))
+			case "decrypt":
+				decrypted, err := ep.cipher.Decrypt(field.Bytes())
+
+				if err != nil {
+					return err
+				}
+
+				field.SetBytes(decrypted)
+			}
 		}
 	}
 	return nil

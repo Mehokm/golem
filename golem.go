@@ -5,5 +5,5 @@ type Cipher interface {
 	SetKeyLength(keySize)
 	SetKey(string)
 	Encrypt([]byte) []byte
-	Decrypt([]byte) []byte
+	Decrypt([]byte) ([]byte, error)
 }
