@@ -47,14 +47,6 @@ var (
 	}
 )
 
-// AESCipher is an interface for all AES encryption
-type AESCipher interface {
-	SetKeyLength(keySize)
-	SetKey(string)
-	Encrypt([]byte) []byte
-	Decrypt([]byte) []byte
-}
-
 type blockModeEncryption struct {
 	*aesCipher
 	encrypterFunc func(b cipher.Block, iv []byte) cipher.BlockMode
@@ -76,7 +68,7 @@ type aesCipher struct {
 type keySize int
 
 // NewAESCipher returns a new AES block cipher set to a specific cipher mode
-func NewAESCipher(mode int) AESCipher {
+func NewAESCipher(mode int) Cipher {
 	switch mode {
 	case ModeCBC:
 		return &blockModeEncryption{

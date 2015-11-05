@@ -37,7 +37,7 @@ func TestCipherWithModeOFB(t *testing.T) {
 	testCipher(t, cipher)
 }
 
-func testCipher(t *testing.T, cipher AESCipher) {
+func testCipher(t *testing.T, cipher Cipher) {
 	testText := []byte("test example string ¬¨ˆ¥®†§!@#$%^&*()")
 
 	enc := cipher.Encrypt(testText)
