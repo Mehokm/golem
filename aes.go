@@ -10,7 +10,7 @@ import (
 
 // AES Cipher Modes
 const (
-	ModeCBC = 1 << iota
+	ModeCBC cipherMode = 1 << iota
 	ModeCFB
 	ModeCTR
 	ModeOFB
@@ -24,14 +24,14 @@ const (
 )
 
 var (
-	blockModeFuncMap = map[int]map[string]func(b cipher.Block, iv []byte) cipher.BlockMode{
+	blockModeFuncMap = map[cipherMode]map[string]func(b cipher.Block, iv []byte) cipher.BlockMode{
 		ModeCBC: map[string]func(b cipher.Block, iv []byte) cipher.BlockMode{
 			"encrypt": cipher.NewCBCEncrypter,
 			"decrypt": cipher.NewCBCDecrypter,
 		},
 	}
 
-	streamFuncMap = map[int]map[string]func(b cipher.Block, iv []byte) cipher.Stream{
+	streamFuncMap = map[cipherMode]map[string]func(b cipher.Block, iv []byte) cipher.Stream{
 		ModeCFB: map[string]func(b cipher.Block, iv []byte) cipher.Stream{
 			"encrypt": cipher.NewCFBEncrypter,
 			"decrypt": cipher.NewCFBDecrypter,
@@ -67,8 +67,11 @@ type aesCipher struct {
 // keySize wraps int type to enforce certain AES key sizes
 type keySize int
 
+// cipherMode wraps int type to enforce AES mode
+type cipherMode int
+
 // NewAESCipher returns a new AES block cipher set to a specific cipher mode
-func NewAESCipher(mode int) Cipher {
+func NewAESCipher(mode cipherMode) Cipher {
 	switch mode {
 	case ModeCBC:
 		return &blockModeEncryption{
