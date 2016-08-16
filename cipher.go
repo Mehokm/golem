@@ -46,37 +46,42 @@ type encryptor struct {
 }
 
 type blockModeEncryption struct {
-	*encryptor
+	Keyer
 	encrypterFunc func(b cipher.Block, iv []byte) cipher.BlockMode
 	decrypterFunc func(b cipher.Block, iv []byte) cipher.BlockMode
 }
 
 type streamEncryption struct {
-	*encryptor
+	Keyer
 	encrypterFunc func(b cipher.Block, iv []byte) cipher.Stream
 	decrypterFunc func(b cipher.Block, iv []byte) cipher.Stream
 }
 
 func newBlockModeEncryption(mode cipherMode) blockModeEncryption {
 	return blockModeEncryption{
-		&encryptor{},
-		blockModeFuncMap[mode]["encrypt"],
-		blockModeFuncMap[mode]["decrypt"],
+		encrypterFunc: blockModeFuncMap[mode]["encrypt"],
+		decrypterFunc: blockModeFuncMap[mode]["decrypt"],
 	}
 }
 
 func newSteamEncryption(mode cipherMode) streamEncryption {
 	return streamEncryption{
-		&encryptor{},
-		streamFuncMap[mode]["encrypt"],
-		streamFuncMap[mode]["decrypt"],
+		encrypterFunc: streamFuncMap[mode]["encrypt"],
+		decrypterFunc: streamFuncMap[mode]["decrypt"],
 	}
 }
 
 // Cipher is an interface for all encryption ciphers
 type Cipher interface {
-	SetKeyLength(keySize)
-	SetKey(string)
+	Keyer
 	Encrypt([]byte) []byte
 	Decrypt([]byte) ([]byte, error)
+}
+
+// Keyer is an interface that sets the key, key lengh and returns the cipher
+// block for which encryption method it uses
+type Keyer interface {
+	SetKeyLength(keySize)
+	SetKey(string)
+	GetBlock() cipher.Block
 }
