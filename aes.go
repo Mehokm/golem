@@ -3,115 +3,59 @@ package golem
 import (
 	"bytes"
 	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 )
 
-// AES Cipher Modes
-const (
-	ModeCBC cipherMode = 1 << iota
-	ModeCFB
-	ModeCTR
-	ModeOFB
-)
-
-// AES Key Length Sizes
+// Key Length Sizes
 const (
 	AES128 keySize = 16
 	AES192 keySize = 24
 	AES256 keySize = 32
 )
 
-var (
-	blockModeFuncMap = map[cipherMode]map[string]func(b cipher.Block, iv []byte) cipher.BlockMode{
-		ModeCBC: map[string]func(b cipher.Block, iv []byte) cipher.BlockMode{
-			"encrypt": cipher.NewCBCEncrypter,
-			"decrypt": cipher.NewCBCDecrypter,
-		},
-	}
-
-	streamFuncMap = map[cipherMode]map[string]func(b cipher.Block, iv []byte) cipher.Stream{
-		ModeCFB: map[string]func(b cipher.Block, iv []byte) cipher.Stream{
-			"encrypt": cipher.NewCFBEncrypter,
-			"decrypt": cipher.NewCFBDecrypter,
-		},
-		ModeCTR: map[string]func(b cipher.Block, iv []byte) cipher.Stream{
-			"encrypt": cipher.NewCTR,
-			"decrypt": cipher.NewCTR,
-		},
-		ModeOFB: map[string]func(b cipher.Block, iv []byte) cipher.Stream{
-			"encrypt": cipher.NewOFB,
-			"decrypt": cipher.NewOFB,
-		},
-	}
-)
-
-type blockModeEncryption struct {
-	*aesCipher
-	encrypterFunc func(b cipher.Block, iv []byte) cipher.BlockMode
-	decrypterFunc func(b cipher.Block, iv []byte) cipher.BlockMode
+type aesBlockEncryption struct {
+	blockModeEncryption
 }
 
-type streamEncryption struct {
-	*aesCipher
-	encrypterFunc func(b cipher.Block, iv []byte) cipher.Stream
-	decrypterFunc func(b cipher.Block, iv []byte) cipher.Stream
+type aesStreamEncryption struct {
+	streamEncryption
 }
-
-type aesCipher struct {
-	block  cipher.Block
-	keylen keySize
-}
-
-// keySize wraps int type to enforce certain AES key sizes
-type keySize int
-
-// cipherMode wraps int type to enforce AES mode
-type cipherMode int
 
 // NewAESCipher returns a new AES block cipher set to a specific cipher mode
 func NewAESCipher(mode cipherMode) Cipher {
 	switch mode {
 	case ModeCBC:
-		return &blockModeEncryption{
-			&aesCipher{
-				keylen: AES128,
-			},
-			blockModeFuncMap[mode]["encrypt"],
-			blockModeFuncMap[mode]["decrypt"],
-		}
+		be := newBlockModeEncryption(mode)
+		be.keylen = AES128
+		return aesBlockEncryption{be}
 	case ModeCFB, ModeCTR, ModeOFB:
-		return &streamEncryption{
-			&aesCipher{
-				keylen: AES128,
-			},
-			streamFuncMap[mode]["encrypt"],
-			streamFuncMap[mode]["decrypt"],
-		}
+		se := newSteamEncryption(mode)
+		se.keylen = AES128
+		return aesStreamEncryption{se}
 	default:
 		panic("unsupported cipher mode")
 	}
 }
 
-func (c *aesCipher) SetKeyLength(size keySize) {
-	c.keylen = size
+func (e *encryptor) SetKeyLength(size keySize) {
+	e.keylen = size
 }
 
-func (c *aesCipher) SetKey(key string) {
+func (e *encryptor) SetKey(key string) {
 	keyHash := sha256.Sum256([]byte(key))
 
-	block, _ := aes.NewCipher(keyHash[:c.keylen])
+	block, _ := aes.NewCipher(keyHash[:e.keylen])
 
-	c.block = block
+	e.block = block
 }
 
-func (c *blockModeEncryption) Encrypt(data []byte) []byte {
+func (a aesBlockEncryption) Encrypt(data []byte) []byte {
 	iv := make([]byte, aes.BlockSize)
 	rand.Read(iv)
 
-	mode := c.encrypterFunc(c.block, iv)
+	mode := a.encrypterFunc(a.block, iv)
 
 	plaintextBlockRem := len(data) % aes.BlockSize
 	if plaintextBlockRem != 0 {
@@ -126,7 +70,7 @@ func (c *blockModeEncryption) Encrypt(data []byte) []byte {
 	return ciphertext
 }
 
-func (c *blockModeEncryption) Decrypt(data []byte) ([]byte, error) {
+func (a aesBlockEncryption) Decrypt(data []byte) ([]byte, error) {
 	if len(data) < aes.BlockSize {
 		return nil, errors.New("ciphertext is too short")
 	}
@@ -138,7 +82,7 @@ func (c *blockModeEncryption) Decrypt(data []byte) ([]byte, error) {
 		return nil, errors.New("ciphertext is not a multiple of the block size")
 	}
 
-	mode := c.decrypterFunc(c.block, iv)
+	mode := a.decrypterFunc(a.block, iv)
 
 	plaintext := make([]byte, len(data)-aes.BlockSize)
 
@@ -147,11 +91,11 @@ func (c *blockModeEncryption) Decrypt(data []byte) ([]byte, error) {
 	return bytes.Trim(plaintext, "\x00"), nil
 }
 
-func (c *streamEncryption) Encrypt(data []byte) []byte {
+func (a aesStreamEncryption) Encrypt(data []byte) []byte {
 	iv := make([]byte, aes.BlockSize)
 	rand.Read(iv)
 
-	stream := c.encrypterFunc(c.block, iv)
+	stream := a.encrypterFunc(a.block, iv)
 
 	ciphertext := make([]byte, aes.BlockSize+len(data))
 	ciphertext = append(iv, ciphertext[aes.BlockSize:]...)
@@ -161,7 +105,7 @@ func (c *streamEncryption) Encrypt(data []byte) []byte {
 	return ciphertext
 }
 
-func (c *streamEncryption) Decrypt(data []byte) ([]byte, error) {
+func (a aesStreamEncryption) Decrypt(data []byte) ([]byte, error) {
 	if len(data) < aes.BlockSize {
 		return nil, errors.New("ciphertext is too short")
 	}
@@ -169,7 +113,7 @@ func (c *streamEncryption) Decrypt(data []byte) ([]byte, error) {
 	iv := data[:aes.BlockSize]
 	ciphertext := data[aes.BlockSize:]
 
-	stream := c.decrypterFunc(c.block, iv)
+	stream := a.decrypterFunc(a.block, iv)
 
 	plaintext := make([]byte, len(ciphertext))
 
