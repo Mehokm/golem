@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCipherWithModeCBC(t *testing.T) {
+func TestAESCipherWithModeCBC(t *testing.T) {
 	cipher := NewAESCipher(ModeCBC)
 	cipher.SetKeyLength(AES256)
 	cipher.SetKey("test example key!1")
@@ -13,7 +13,7 @@ func TestCipherWithModeCBC(t *testing.T) {
 	testCipher(t, cipher)
 }
 
-func TestCipherWithModeCFB(t *testing.T) {
+func TestAESCipherWithModeCFB(t *testing.T) {
 	cipher := NewAESCipher(ModeCFB)
 	cipher.SetKeyLength(AES256)
 	cipher.SetKey("test example key!2")
@@ -21,7 +21,7 @@ func TestCipherWithModeCFB(t *testing.T) {
 	testCipher(t, cipher)
 }
 
-func TestCipherWithModeCTR(t *testing.T) {
+func TestAESCipherWithModeCTR(t *testing.T) {
 	cipher := NewAESCipher(ModeCTR)
 	cipher.SetKeyLength(AES256)
 	cipher.SetKey("test example key!3")
@@ -29,7 +29,7 @@ func TestCipherWithModeCTR(t *testing.T) {
 	testCipher(t, cipher)
 }
 
-func TestCipherWithModeOFB(t *testing.T) {
+func TestAESCipherWithModeOFB(t *testing.T) {
 	cipher := NewAESCipher(ModeOFB)
 	cipher.SetKeyLength(AES256)
 	cipher.SetKey("test example key!4")
