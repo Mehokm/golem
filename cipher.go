@@ -42,14 +42,10 @@ var (
 
 // Cipher is an interface for all encryption ciphers
 type Cipher interface {
-	SetKeyLength(keySize)
 	SetKey(string) error
 	Encrypt([]byte) []byte
 	Decrypt([]byte) ([]byte, error)
 }
-
-// keySize wraps int type to enforce certain AES key sizes
-type keySize int
 
 // cipherMode wraps int type to enforce AES mode
 type cipherMode int
@@ -58,7 +54,7 @@ type encryptor struct {
 	cipherFunc func([]byte) (cipher.Block, error)
 	blockSize  int
 	block      cipher.Block
-	keylen     keySize
+	keylen     int
 }
 
 type blockModeEncryption struct {
@@ -102,10 +98,6 @@ func getCipher(mode cipherMode, encryptor *encryptor) Cipher {
 	default:
 		panic("unsupported cipher mode")
 	}
-}
-
-func (e *encryptor) SetKeyLength(size keySize) {
-	e.keylen = size
 }
 
 func (e *encryptor) SetKey(key string) error {

@@ -6,40 +6,35 @@ import (
 )
 
 func TestAESCipherWithModeCBC(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("test example key!1")
 
 	testCipher(t, cipher)
 }
 
 func TestAESCipherWithModeCFB(t *testing.T) {
-	cipher := NewAESCipher(ModeCFB)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCFB)
 	cipher.SetKey("test example key!2")
 
 	testCipher(t, cipher)
 }
 
 func TestAESCipherWithModeCTR(t *testing.T) {
-	cipher := NewAESCipher(ModeCTR)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCTR)
 	cipher.SetKey("test example key!3")
 
 	testCipher(t, cipher)
 }
 
 func TestAESCipherWithModeOFB(t *testing.T) {
-	cipher := NewAESCipher(ModeOFB)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeOFB)
 	cipher.SetKey("test example key!4")
 
 	testCipher(t, cipher)
 }
 
 func TestAESModeCBCDecryptReturnsCorrectErrorWhenTooShort(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("kdsfjas;k@!$KFNMSDFMS")
 
 	testText := []byte("test example string ¬¨ˆ¥®†§!@#$%^&*()")
@@ -53,8 +48,7 @@ func TestAESModeCBCDecryptReturnsCorrectErrorWhenTooShort(t *testing.T) {
 }
 
 func TestAESModeCBCDecryptReturnsCorrectErrorWhenNotMultipleOfBlock(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("kdsfjas;k@!$KFNMSDFMS")
 
 	testText := []byte("test example string ¬¨ˆ¥®†§!@#$%^&*()")
@@ -74,6 +68,6 @@ func testCipher(t *testing.T, cipher Cipher) {
 	dec, _ := cipher.Decrypt(enc)
 
 	if bytes.Compare(testText, dec) != 0 {
-		t.Error("decrypted text does not match test text")
+		t.Errorf("decrypted text does not match test text: %v, %v", string(testText), string(dec))
 	}
 }

@@ -12,8 +12,7 @@ type TestStruct struct {
 }
 
 func TestEntityProtectUnprotect(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("test123abvefd1jhf123")
 
 	ep := NewEntityProtector(cipher)
@@ -37,8 +36,7 @@ func TestEntityProtectUnprotect(t *testing.T) {
 }
 
 func TestEntityReturnsErrorWhenNotAPointer(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("test123abvefd1jhf123")
 
 	ep := NewEntityProtector(cipher)
@@ -57,8 +55,7 @@ func TestEntityReturnsErrorWhenNotAPointer(t *testing.T) {
 }
 
 func TestEntityReturnsErrorWhenNotAStruct(t *testing.T) {
-	cipher := NewAESCipher(ModeCBC)
-	cipher.SetKeyLength(AES256)
+	cipher := NewAES256Cipher(ModeCBC)
 	cipher.SetKey("test123abvefd1jhf123")
 
 	ep := NewEntityProtector(cipher)

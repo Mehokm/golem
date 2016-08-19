@@ -2,19 +2,33 @@ package golem
 
 import "crypto/aes"
 
-// Key Length Sizes
-const (
-	AES128 keySize = 16
-	AES192 keySize = 24
-	AES256 keySize = 32
-)
-
-// NewAESCipher returns a new AES block cipher set to a specific cipher mode
-func NewAESCipher(mode cipherMode) Cipher {
-	encryptor := &encryptor{}
-	encryptor.keylen = AES128
-	encryptor.blockSize = aes.BlockSize
-	encryptor.cipherFunc = aes.NewCipher
+// NewAES256Cipher returns a new AES256 block cipher set to a specific cipher mode
+func NewAES256Cipher(mode cipherMode) Cipher {
+	encryptor := aesEncryptor()
+	encryptor.keylen = 32 // AES256
 
 	return getCipher(mode, encryptor)
+}
+
+// NewAES192Cipher returns a new AES192 block cipher set to a specific cipher mode
+func NewAES192Cipher(mode cipherMode) Cipher {
+	encryptor := aesEncryptor()
+	encryptor.keylen = 24 // AES192
+
+	return getCipher(mode, encryptor)
+}
+
+// NewAES128Cipher returns a new AES128 block cipher set to a specific cipher mode
+func NewAES128Cipher(mode cipherMode) Cipher {
+	encryptor := aesEncryptor()
+	encryptor.keylen = 16 // AES128
+
+	return getCipher(mode, encryptor)
+}
+
+func aesEncryptor() *encryptor {
+	return &encryptor{
+		blockSize:  aes.BlockSize,
+		cipherFunc: aes.NewCipher,
+	}
 }
