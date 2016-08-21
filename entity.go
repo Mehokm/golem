@@ -5,9 +5,6 @@ import (
 	"reflect"
 )
 
-// ByteArray is a type that allows structs to be protected
-type ByteArray []byte
-
 type entityProtector struct {
 	cipher Cipher
 }
@@ -29,23 +26,31 @@ func (ep entityProtector) process(i interface{}, method string) error {
 	iAddr := reflect.ValueOf(i)
 
 	if iAddr.Kind() != reflect.Ptr {
-		return errors.New("Not a pointer value")
+		return errors.New("not a pointer value")
 	}
 
-	iAddr = reflect.Indirect(iAddr)
-
-	if iAddr.Kind() != reflect.Struct {
+	if iAddr.Elem().Kind() != reflect.Struct {
 		return errors.New("interface{} must be of type Struct")
 	}
 
-	iAddr = reflect.Indirect(iAddr)
-	for i := 0; i < iAddr.NumField(); i++ {
-		field := iAddr.Field(i)
-		if _, ok := field.Interface().(ByteArray); ok {
-			switch method {
-			case "encrypt":
+	for i := 0; i < iAddr.Elem().NumField(); i++ {
+		field := iAddr.Elem().Field(i)
+		tag := iAddr.Elem().Type().Field(i).Tag.Get("golem")
+
+		if tag != "protect" {
+			continue
+		}
+
+		if method == "encrypt" {
+			switch field.Interface().(type) {
+			case []byte:
 				field.SetBytes(ep.cipher.Encrypt(field.Bytes()))
-			case "decrypt":
+			case string:
+				field.SetString(string(ep.cipher.Encrypt([]byte(field.String()))))
+			}
+		} else if method == "decrypt" {
+			switch field.Interface().(type) {
+			case []byte:
 				decrypted, err := ep.cipher.Decrypt(field.Bytes())
 
 				if err != nil {
@@ -53,13 +58,16 @@ func (ep entityProtector) process(i interface{}, method string) error {
 				}
 
 				field.SetBytes(decrypted)
+			case string:
+				decrypted, err := ep.cipher.Decrypt([]byte(field.String()))
+
+				if err != nil {
+					return err
+				}
+
+				field.SetString(string(decrypted))
 			}
 		}
 	}
 	return nil
-}
-
-// ToString returns string version of []byte
-func (ba ByteArray) String() string {
-	return string(ba)
 }

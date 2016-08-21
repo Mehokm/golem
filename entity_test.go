@@ -1,14 +1,15 @@
 package golem
 
 import (
-	_ "fmt"
+	"bytes"
+	"fmt"
 	"testing"
 )
 
 type TestStruct struct {
-	A ByteArray
-	B ByteArray
-	C []byte
+	A []byte `golem:"protect"`
+	B string `golem:"protect"`
+	C int
 }
 
 func TestEntityProtectUnprotect(t *testing.T) {
@@ -18,20 +19,25 @@ func TestEntityProtectUnprotect(t *testing.T) {
 	ep := NewEntityProtector(cipher)
 
 	ts := TestStruct{
-		ByteArray("hello"),
-		ByteArray("world"),
 		[]byte("12345"),
+		"good bye",
+		123,
 	}
 
 	ep.Protect(&ts)
+
+	fmt.Println(ts.B)
+
 	ep.Unprotect(&ts)
 
-	if "hello" != ts.A.String() {
-		t.Errorf("Excepted '%v' to equal '%v'", ts.A.String(), "hello")
+	fmt.Println(ts.B)
+
+	if !bytes.Equal([]byte("12345"), ts.A) {
+		t.Errorf("Excepted '%v' to equal '%v'", ts.B, []byte("12345"))
 	}
 
-	if "world" != ts.B.String() {
-		t.Errorf("Excepted '%v' to equal '%v'", ts.B.String(), "world")
+	if "good bye" != ts.B {
+		t.Errorf("Excepted '%v' to equal '%v'", ts.B, "good bye")
 	}
 }
 
@@ -42,15 +48,15 @@ func TestEntityReturnsErrorWhenNotAPointer(t *testing.T) {
 	ep := NewEntityProtector(cipher)
 
 	ts := TestStruct{
-		ByteArray("hello"),
-		ByteArray("world"),
 		[]byte("12345"),
+		"good bye",
+		123,
 	}
 
 	err := ep.Protect(ts)
 
-	if "Not a pointer value" != err.Error() {
-		t.Errorf("Excepted '%v' to equal '%v'", err.Error(), "Not a pointer value")
+	if "not a pointer value" != err.Error() {
+		t.Errorf("Excepted '%v' to equal '%v'", err.Error(), "not a pointer value")
 	}
 }
 
