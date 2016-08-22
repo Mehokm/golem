@@ -2,7 +2,6 @@ package golem
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 )
 
@@ -26,11 +25,7 @@ func TestEntityProtectUnprotect(t *testing.T) {
 
 	ep.Protect(&ts)
 
-	fmt.Println(ts.B)
-
 	ep.Unprotect(&ts)
-
-	fmt.Println(ts.B)
 
 	if !bytes.Equal([]byte("12345"), ts.A) {
 		t.Errorf("Excepted '%v' to equal '%v'", ts.B, []byte("12345"))
